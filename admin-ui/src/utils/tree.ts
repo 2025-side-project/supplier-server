@@ -238,19 +238,19 @@ export const handleTree = (data: any[], id?: string, parentId?: string, children
   const nodeIds = {}
   const tree: any[] = []
 
-  for (const d of data) {
-    const parentId = d[config.parentId]
+  for (const datum of data) {
+    const parentId = datum[config.parentId]
     if (childrenListMap[parentId] == null) {
       childrenListMap[parentId] = []
     }
-    nodeIds[d[config.id]] = d
-    childrenListMap[parentId].push(d)
+    nodeIds[datum[config.id]] = datum
+    childrenListMap[parentId].push(datum)
   }
 
-  for (const d of data) {
-    const parentId = d[config.parentId]
+  for (const datum of data) {
+    const parentId = datum[config.parentId]
     if (nodeIds[parentId] == null) {
-      tree.push(d)
+      tree.push(datum)
     }
   }
 
