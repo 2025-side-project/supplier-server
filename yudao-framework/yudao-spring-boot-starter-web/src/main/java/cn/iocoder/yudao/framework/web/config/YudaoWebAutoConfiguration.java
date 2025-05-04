@@ -7,8 +7,10 @@ import cn.iocoder.yudao.framework.web.core.handler.GlobalExceptionHandler;
 import cn.iocoder.yudao.framework.web.core.handler.GlobalResponseBodyHandler;
 import cn.iocoder.yudao.framework.web.core.util.WebFrameworkUtils;
 import cn.iocoder.yudao.module.infra.api.logger.ApiErrorLogApi;
+import jakarta.annotation.Nullable;
 import jakarta.annotation.Resource;
 import jakarta.servlet.Filter;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -58,7 +60,6 @@ public class YudaoWebAutoConfiguration implements WebMvcConfigurer {
     }
 
     @Bean
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     public GlobalExceptionHandler globalExceptionHandler(ApiErrorLogApi apiErrorLogApi) {
         return new GlobalExceptionHandler(applicationName, apiErrorLogApi);
     }
