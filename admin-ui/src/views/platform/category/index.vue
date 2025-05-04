@@ -54,6 +54,11 @@
       row-key="id"
       :default-expand-all="isExpandAll"
       v-if="refreshTable"
+      @row-dblclick="
+        (row) => {
+          hasPermission(['platform:category:update']) && openForm('update', row.id)
+        }
+      "
     >
       <el-table-column label="分类名称" align="center" prop="name" />
       <el-table-column label="分类排序" align="center" prop="sort" />
@@ -111,6 +116,7 @@ import { eachTree, handleTree } from '@/utils/tree'
 import { CategoryApi, CategoryVO } from '@/api/platform/category'
 import CategoryForm from './CategoryForm.vue'
 import { DICT_TYPE } from '@/utils/dict'
+import { hasPermission } from '@/directives/permission/hasPermi'
 
 /** 平台分类 列表 */
 defineOptions({ name: 'PlatformCategory' })

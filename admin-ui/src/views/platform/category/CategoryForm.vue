@@ -77,10 +77,10 @@ const open = async (type: string, id?: number) => {
   formType.value = type
   resetForm()
 
-  if (type === "create" && id) {
+  if (type === 'create' && id) {
     // 新增下一级分类
-    formData.value.parentId = id;
-  } else if(id) {
+    formData.value.parentId = id
+  } else if (id) {
     // 修改时，设置数据
     formLoading.value = true
     try {
@@ -135,9 +135,9 @@ const getCategoryTree = async () => {
   const data = await CategoryApi.getCategoryList()
   const treeDatas = handleTree(data, 'id', 'parentId')
   eachTree(treeDatas, (node, parent) => {
-    node.level = (parent?.level ?? -1) + 1;
+    node.level = (parent?.level ?? -1) + 1
     if (node.level >= 1) {
-      node.leaf = true;
+      node.leaf = true
     }
   })
   console.log(treeDatas)
