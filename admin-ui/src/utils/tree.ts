@@ -363,7 +363,7 @@ export const checkSelectedNode = (tree: any[], nodeId: any, level = 2): boolean 
  * @param tree 树数据
  * @param nodeId 节点 id
  */
-export const treeToString = (tree: any[], nodeId) => {
+export const treeToString = (tree: any[], nodeId: number) => {
   if (typeof tree === 'undefined' || !Array.isArray(tree) || tree.length === 0) {
     console.warn('tree must be an array')
     return ''
@@ -375,7 +375,7 @@ export const treeToString = (tree: any[], nodeId) => {
   }
   let str = ''
 
-  function performAThoroughValidation(arr) {
+  function performAThoroughValidation(arr?: any[]) {
     if (typeof arr === 'undefined' || !Array.isArray(arr) || arr.length === 0) {
       return false
     }

@@ -92,6 +92,11 @@
               <el-col :span="24">
                 <el-row>
                   <el-col :span="8">
+                    <el-form-item label="平台分类:">
+                      <span>{{ formatPlatformCategoryName(row.platformCategoryId) }}</span>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="8">
                     <el-form-item label="商品分类:">
                       <span>{{ formatCategoryName(row.categoryId) }}</span>
                     </el-form-item>
@@ -181,7 +186,7 @@
       />
       <el-table-column align="center" fixed="right" label="操作" min-width="200">
         <template #default="{ row }">
-          <el-button link type="primary" @click="openDetail(row.id)"> 详情 </el-button>
+          <el-button link type="primary" @click="openDetail(row.id)"> 详情</el-button>
           <el-button
             v-hasPermi="['product:spu:update']"
             link
@@ -240,6 +245,7 @@ import { fenToYuan } from '@/utils'
 import download from '@/utils/download'
 import * as ProductSpuApi from '@/api/mall/product/spu'
 import * as ProductCategoryApi from '@/api/mall/product/category'
+import { CategoryApi as PlatformCategoryApi } from '@/api/platform/category'
 
 defineOptions({ name: 'ProductSpu' })
 
@@ -424,6 +430,10 @@ const categoryList = ref() // 分类树
 const formatCategoryName = (categoryId: number) => {
   return treeToString(categoryList.value, categoryId)
 }
+const platformCategoryList = shallowRef()
+const formatPlatformCategoryName = (platformCategoryId: number) => {
+  return treeToString(platformCategoryList.value, platformCategoryId)
+}
 
 /** 激活时 */
 onActivated(() => {
@@ -442,6 +452,9 @@ onMounted(async () => {
   // 获得分类树
   const data = await ProductCategoryApi.getCategoryList({})
   categoryList.value = handleTree(data, 'id', 'parentId')
+  // 平台分类树
+  const platformCategoryData = await PlatformCategoryApi.getCategoryList({})
+  platformCategoryList.value = handleTree(platformCategoryData, 'id', 'parentId')
 })
 </script>
 <style lang="scss" scoped>

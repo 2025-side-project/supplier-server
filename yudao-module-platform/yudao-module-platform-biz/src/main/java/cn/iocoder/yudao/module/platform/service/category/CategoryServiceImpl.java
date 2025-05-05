@@ -3,6 +3,7 @@ package cn.iocoder.yudao.module.platform.service.category;
 import java.util.List;
 import java.util.Objects;
 
+import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
 import cn.iocoder.yudao.module.platform.controller.admin.category.vo.CategoryListReqVO;
 import cn.iocoder.yudao.module.platform.controller.admin.category.vo.CategorySaveReqVO;
@@ -13,13 +14,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PRODUCT_CATEGORY_EXITS_CHILDREN;
-import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PRODUCT_CATEGORY_LEVEL_EXCEED_THIRD;
-import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PRODUCT_CATEGORY_NAME_DUPLICATE;
-import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PRODUCT_CATEGORY_NOT_EXISTS;
-import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PRODUCT_CATEGORY_PARENT_ERROR;
-import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PRODUCT_CATEGORY_PARENT_IS_CHILD;
-import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PRODUCT_CATEGORY_PARENT_NOT_EXITS;
+import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PLATFORM_CATEGORY_BINDING_ERROR;
+import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PLATFORM_CATEGORY_DISABLED;
+import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PLATFORM_CATEGORY_EXITS_CHILDREN;
+import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PLATFORM_CATEGORY_LEVEL_EXCEED_THIRD;
+import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PLATFORM_CATEGORY_NAME_DUPLICATE;
+import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PLATFORM_CATEGORY_NOT_EXISTS;
+import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PLATFORM_CATEGORY_PARENT_ERROR;
+import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PLATFORM_CATEGORY_PARENT_IS_CHILD;
+import static cn.iocoder.yudao.module.platform.enums.ErrorCodeConstants.PLATFORM_CATEGORY_PARENT_NOT_EXITS;
 
 /**
  * 商品分类 Service 实现类
@@ -65,7 +68,7 @@ public class CategoryServiceImpl implements CategoryService {
         validateProductCategoryExists(id);
         // 校验是否有子商品分类
         if (categoryMapper.selectCountByParentId(id) > 0) {
-            throw exception(PRODUCT_CATEGORY_EXITS_CHILDREN);
+            throw exception(PLATFORM_CATEGORY_EXITS_CHILDREN);
         }
         // 删除
         categoryMapper.deleteById(id);
@@ -73,7 +76,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     private void validateProductCategoryExists(Long id) {
         if (categoryMapper.selectById(id) == null) {
-            throw exception(PRODUCT_CATEGORY_NOT_EXISTS);
+            throw exception(PLATFORM_CATEGORY_NOT_EXISTS);
         }
     }
 
@@ -83,16 +86,16 @@ public class CategoryServiceImpl implements CategoryService {
         }
         // 不能设置自己为父商品分类
         if (Objects.equals(id, parentId)) {
-            throw exception(PRODUCT_CATEGORY_PARENT_ERROR);
+            throw exception(PLATFORM_CATEGORY_PARENT_ERROR);
         }
         // 判断是否为超过三层
         if (!checkCategoryLevelLessThanThird(parentId)) {
-            throw exception(PRODUCT_CATEGORY_LEVEL_EXCEED_THIRD);
+            throw exception(PLATFORM_CATEGORY_LEVEL_EXCEED_THIRD);
         }
         // 父商品分类不存在
         CategoryDO parentProductCategory = categoryMapper.selectById(parentId);
         if (parentProductCategory == null) {
-            throw exception(PRODUCT_CATEGORY_PARENT_NOT_EXITS);
+            throw exception(PLATFORM_CATEGORY_PARENT_NOT_EXITS);
         }
         // 递归校验父商品分类，如果父商品分类是自己的子商品分类，则报错，避免形成环路
         if (id == null) { // id 为空，说明新增，不需要考虑环路
@@ -102,7 +105,7 @@ public class CategoryServiceImpl implements CategoryService {
             // 校验环路
             parentId = parentProductCategory.getParentId();
             if (Objects.equals(id, parentId)) {
-                throw exception(PRODUCT_CATEGORY_PARENT_IS_CHILD);
+                throw exception(PLATFORM_CATEGORY_PARENT_IS_CHILD);
             }
             // 继续递归下一级父商品分类
             if (parentId == null || CategoryDO.PARENT_ID_ROOT.equals(parentId)) {
@@ -116,16 +119,16 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     private void validateProductCategoryNameUnique(Long id, Long parentId, String name) {
-        CategoryDO productCategory = categoryMapper.selectByParentIdAndName(parentId, name);
-        if (productCategory == null) {
+        CategoryDO category = categoryMapper.selectByParentIdAndName(parentId, name);
+        if (category == null) {
             return;
         }
         // 如果 id 为空，说明不用比较是否为相同 id 的商品分类
         if (id == null) {
-            throw exception(PRODUCT_CATEGORY_NAME_DUPLICATE);
+            throw exception(PLATFORM_CATEGORY_NAME_DUPLICATE);
         }
-        if (!Objects.equals(productCategory.getId(), id)) {
-            throw exception(PRODUCT_CATEGORY_NAME_DUPLICATE);
+        if (!Objects.equals(category.getId(), id)) {
+            throw exception(PLATFORM_CATEGORY_NAME_DUPLICATE);
         }
     }
 
@@ -144,5 +147,20 @@ public class CategoryServiceImpl implements CategoryService {
         Long grandParentId = categoryMapper.getCategoryGrandParentId(id);
         // 如果为空, 表示其为一级分类, 返回 0 表示其为二级分类
         return grandParentId == null || grandParentId.equals(CategoryDO.PARENT_ID_ROOT);
+    }
+
+    @Override
+    public void validateProductBinding(Long id) {
+        CategoryDO store = categoryMapper.selectById(id);
+        if (store == null) {
+            throw exception(PLATFORM_CATEGORY_NOT_EXISTS);
+        }
+        if (CommonStatusEnum.DISABLE.getStatus() == store.getStatus().intValue()) {
+            throw exception(PLATFORM_CATEGORY_DISABLED, store.getName());
+        }
+        Long greatGrandParentId = categoryMapper.getCategoryGreatGrandParentId(store.getId());
+        if (greatGrandParentId != 0L) {
+            throw exception(PLATFORM_CATEGORY_BINDING_ERROR);
+        }
     }
 }

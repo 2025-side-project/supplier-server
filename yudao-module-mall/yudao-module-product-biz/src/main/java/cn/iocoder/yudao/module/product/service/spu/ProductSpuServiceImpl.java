@@ -1,11 +1,19 @@
 package cn.iocoder.yudao.module.product.service.spu;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.pojo.PageResult;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
 import cn.iocoder.yudao.framework.common.util.object.BeanUtils;
+import cn.iocoder.yudao.module.platform.api.category.CategoryApi;
 import cn.iocoder.yudao.module.product.controller.admin.category.vo.ProductCategoryListReqVO;
 import cn.iocoder.yudao.module.product.controller.admin.spu.vo.ProductSkuSaveReqVO;
 import cn.iocoder.yudao.module.product.controller.admin.spu.vo.ProductSpuPageReqVO;
@@ -26,12 +34,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.*;
-
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
-import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.*;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertList;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.convertMap;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.getMinValue;
+import static cn.iocoder.yudao.framework.common.util.collection.CollectionUtils.getSumValue;
 import static cn.iocoder.yudao.module.product.dal.dataobject.category.ProductCategoryDO.CATEGORY_LEVEL;
-import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.SPU_NOT_ENABLE;
+import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.SPU_NOT_EXISTS;
+import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.SPU_NOT_RECYCLE;
+import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.SPU_SAVE_FAIL_CATEGORY_LEVEL_ERROR;
 
 /**
  * 商品 SPU Service 实现类
@@ -52,10 +64,14 @@ public class ProductSpuServiceImpl implements ProductSpuService {
     private ProductBrandService brandService;
     @Resource
     private ProductCategoryService categoryService;
+    @Resource
+    private CategoryApi categoryApi;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createSpu(ProductSpuSaveReqVO createReqVO) {
+        // 校验平台分类
+        categoryApi.validateProductBinding(createReqVO.getPlatformCategoryId());
         // 校验分类、品牌
         validateCategory(createReqVO.getCategoryId());
         brandService.validateProductBrand(createReqVO.getBrandId());
@@ -77,6 +93,8 @@ public class ProductSpuServiceImpl implements ProductSpuService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void updateSpu(ProductSpuSaveReqVO updateReqVO) {
+        // 校验平台分类
+        categoryApi.validateProductBinding(updateReqVO.getPlatformCategoryId());
         // 校验 SPU 是否存在
         ProductSpuDO spu = validateSpuExists(updateReqVO.getId());
         // 校验分类、品牌
@@ -137,7 +155,7 @@ public class ProductSpuServiceImpl implements ProductSpuService {
             return Collections.emptyList();
         }
         // 获得商品信息
-        List<ProductSpuDO> list = productSpuMapper.selectBatchIds(ids);
+        List<ProductSpuDO> list = productSpuMapper.selectByIds(ids);
         Map<Long, ProductSpuDO> spuMap = CollectionUtils.convertMap(list, ProductSpuDO::getId);
         // 校验
         ids.forEach(id -> {
@@ -154,7 +172,7 @@ public class ProductSpuServiceImpl implements ProductSpuService {
 
     @Override
     public void updateBrowseCount(Long id, int incrCount) {
-        productSpuMapper.updateBrowseCount(id , incrCount);
+        productSpuMapper.updateBrowseCount(id, incrCount);
     }
 
     @Override
@@ -216,13 +234,13 @@ public class ProductSpuServiceImpl implements ProductSpuService {
         if (pageReqVO.getCategoryId() != null && pageReqVO.getCategoryId() > 0) {
             categoryIds.add(pageReqVO.getCategoryId());
             List<ProductCategoryDO> categoryChildren = categoryService.getCategoryList(new ProductCategoryListReqVO()
-                    .setStatus(CommonStatusEnum.ENABLE.getStatus()).setParentId(pageReqVO.getCategoryId()));
+                .setStatus(CommonStatusEnum.ENABLE.getStatus()).setParentId(pageReqVO.getCategoryId()));
             categoryIds.addAll(convertList(categoryChildren, ProductCategoryDO::getId));
         }
         if (CollUtil.isNotEmpty(pageReqVO.getCategoryIds())) {
             categoryIds.addAll(pageReqVO.getCategoryIds());
             List<ProductCategoryDO> categoryChildren = categoryService.getCategoryList(new ProductCategoryListReqVO()
-                    .setStatus(CommonStatusEnum.ENABLE.getStatus()).setParentIds(pageReqVO.getCategoryIds()));
+                .setStatus(CommonStatusEnum.ENABLE.getStatus()).setParentIds(pageReqVO.getCategoryIds()));
             categoryIds.addAll(convertList(categoryChildren, ProductCategoryDO::getId));
         }
         // 分页查询
@@ -252,19 +270,19 @@ public class ProductSpuServiceImpl implements ProductSpuService {
         Map<Integer, Long> counts = Maps.newLinkedHashMapWithExpectedSize(5);
         // 查询销售中的商品数量
         counts.put(ProductSpuPageReqVO.FOR_SALE,
-                productSpuMapper.selectCount(ProductSpuDO::getStatus, ProductSpuStatusEnum.ENABLE.getStatus()));
+            productSpuMapper.selectCount(ProductSpuDO::getStatus, ProductSpuStatusEnum.ENABLE.getStatus()));
         // 查询仓库中的商品数量
         counts.put(ProductSpuPageReqVO.IN_WAREHOUSE,
-                productSpuMapper.selectCount(ProductSpuDO::getStatus, ProductSpuStatusEnum.DISABLE.getStatus()));
+            productSpuMapper.selectCount(ProductSpuDO::getStatus, ProductSpuStatusEnum.DISABLE.getStatus()));
         // 查询售空的商品数量
         counts.put(ProductSpuPageReqVO.SOLD_OUT,
-                productSpuMapper.selectCount(ProductSpuDO::getStock, 0));
+            productSpuMapper.selectCount(ProductSpuDO::getStock, 0));
         // 查询触发警戒库存的商品数量
         counts.put(ProductSpuPageReqVO.ALERT_STOCK,
-                productSpuMapper.selectCount());
+            productSpuMapper.selectCount());
         // 查询回收站中的商品数量
         counts.put(ProductSpuPageReqVO.RECYCLE_BIN,
-                productSpuMapper.selectCount(ProductSpuDO::getStatus, ProductSpuStatusEnum.RECYCLE.getStatus()));
+            productSpuMapper.selectCount(ProductSpuDO::getStatus, ProductSpuStatusEnum.RECYCLE.getStatus()));
         return counts;
     }
 

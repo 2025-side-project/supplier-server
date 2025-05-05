@@ -18,6 +18,8 @@
     </description>
 
     <dependencies>
+        <!-- 业务组件 -->
+
         <dependency>
             <groupId>cn.iocoder.boot</groupId>
             <artifactId>yudao-module-product-api</artifactId>
@@ -28,8 +30,11 @@
             <artifactId>yudao-module-member-api</artifactId>
             <version>${revision}</version>
         </dependency>
-
-        <!-- 业务组件 -->
+        <dependency>
+            <groupId>cn.iocoder.boot</groupId>
+            <artifactId>yudao-module-platform-api</artifactId>
+            <version>${revision}</version>
+        </dependency>
 
         <!-- Web 相关 -->
         <dependency>

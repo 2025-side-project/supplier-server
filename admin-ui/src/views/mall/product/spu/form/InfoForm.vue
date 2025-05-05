@@ -13,6 +13,17 @@
         type="textarea"
       />
     </el-form-item>
+    <el-form-item label="平台分类" prop="platformCategoryId">
+      <el-cascader
+        v-model="formData.platformCategoryId"
+        :options="platformCategoryList"
+        :props="defaultProps"
+        class="w-80"
+        clearable
+        filterable
+        placeholder="请选择商品分类"
+      />
+    </el-form-item>
     <el-form-item label="商品分类" prop="categoryId">
       <el-cascader
         v-model="formData.categoryId"
@@ -53,7 +64,7 @@
       <UploadImg v-model="formData.picUrl" :disabled="isDetail" height="80px" />
     </el-form-item>
     <el-form-item label="商品轮播图" prop="sliderPicUrls">
-      <UploadImgs v-model="formData.sliderPicUrls" :disabled="isDetail" />
+      <UploadImgs v-model="formData.sliderPicUrls!" :disabled="isDetail" />
     </el-form-item>
   </el-form>
 </template>
@@ -67,6 +78,10 @@ import * as ProductCategoryApi from '@/api/mall/product/category'
 import { CategoryVO } from '@/api/mall/product/category'
 import * as ProductBrandApi from '@/api/mall/product/brand'
 import { BrandVO } from '@/api/mall/product/brand'
+import {
+  CategoryApi as PlatformCategoryApi,
+  CategoryVO as PlatformCategoryVO
+} from '@/api/platform/category'
 
 defineOptions({ name: 'ProductSpuInfoForm' })
 const props = defineProps({
@@ -91,6 +106,7 @@ const formData = reactive<Spu>({
 })
 const rules = reactive({
   name: [required],
+  platformCategoryId: [required],
   categoryId: [required],
   keyword: [required],
   introduction: [required],
@@ -132,11 +148,15 @@ defineExpose({ validate })
 /** 初始化 */
 const brandList = ref<BrandVO[]>([]) // 商品品牌列表
 const categoryList = ref<CategoryVO[]>([]) // 商品分类树
+const platformCategoryList = ref<PlatformCategoryVO[]>([]) // 平台分类树
 onMounted(async () => {
   // 获得分类树
   const data = await ProductCategoryApi.getCategoryList({})
   categoryList.value = handleTree(data, 'id')
   // 获取商品品牌列表
   brandList.value = await ProductBrandApi.getSimpleBrandList()
+  // 获取平添分类列表
+  const platformCategoryData = await PlatformCategoryApi.getCategoryList({})
+  platformCategoryList.value = handleTree(platformCategoryData, 'id')
 })
 </script>

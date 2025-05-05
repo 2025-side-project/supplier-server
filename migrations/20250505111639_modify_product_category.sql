@@ -1,7 +1,7 @@
 -- Add migration script here
 
 alter table product_category alter column pic_url drop not null;
-alter table product_category drop constraint pk_product_category;
+alter table product_category drop constraint if exists pk_product_category;
 
 do
 $$

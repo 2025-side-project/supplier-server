@@ -17,4 +17,13 @@
                            on l.parent_id = r.id
         where l.id = #{id}
     </select>
+
+    <select id="getCategoryGreatGrandParentId" resultType="Long">
+        select r.parent_id
+        from platform_category l
+                 left join platform_category m
+                           on l.parent_id = m.id
+                 left join platform_category r on m.parent_id = r.id
+        where l.id = #{id}
+    </select>
 </mapper>

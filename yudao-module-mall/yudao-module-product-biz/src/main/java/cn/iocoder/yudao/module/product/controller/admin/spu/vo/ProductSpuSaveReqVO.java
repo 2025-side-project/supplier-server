@@ -35,6 +35,10 @@ public class ProductSpuSaveReqVO {
     @NotNull(message = "商品分类不能为空")
     private Long categoryId;
 
+    @Schema(description = "平台分类编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @NotNull(message = "平台分类不能为空")
+    private Long platformCategoryId;
+
     @Schema(description = "商品品牌编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @NotNull(message = "商品品牌不能为空")
     private Long brandId;
