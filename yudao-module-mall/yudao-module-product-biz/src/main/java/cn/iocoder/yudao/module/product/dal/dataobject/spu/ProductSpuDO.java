@@ -61,6 +61,12 @@ public class ProductSpuDO extends BaseDO {
      * 关联 {@link ProductCategoryDO#getId()}
      */
     private Long categoryId;
+
+    /**
+     * 平台分类 Id
+     */
+    private Long platformCategoryId;
+
     /**
      * 商品品牌编号
      *

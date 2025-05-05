@@ -1,5 +1,10 @@
 package cn.iocoder.yudao.module.product.service.category;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
 import cn.hutool.core.collection.CollUtil;
 import cn.iocoder.yudao.framework.common.enums.CommonStatusEnum;
 import cn.iocoder.yudao.framework.common.util.collection.CollectionUtils;
@@ -14,15 +19,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
 import static cn.iocoder.yudao.framework.common.exception.util.ServiceExceptionUtil.exception;
 import static cn.iocoder.yudao.module.product.dal.dataobject.category.ProductCategoryDO.CATEGORY_LEVEL;
 import static cn.iocoder.yudao.module.product.dal.dataobject.category.ProductCategoryDO.PARENT_ID_NULL;
-import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.*;
+import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.CATEGORY_DISABLED;
+import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.CATEGORY_EXISTS_CHILDREN;
+import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.CATEGORY_HAVE_BIND_SPU;
+import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.CATEGORY_NOT_EXISTS;
+import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.CATEGORY_PARENT_NOT_EXISTS;
+import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.CATEGORY_PARENT_SHOULD_NOT_THIRD_LEVEL;
+import static cn.iocoder.yudao.module.product.enums.ErrorCodeConstants.SPU_SAVE_FAIL_CATEGORY_LEVEL_ERROR;
 
 /**
  * 商品分类 Service 实现类
@@ -158,7 +164,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
             // 如果没有父节点，break 结束
             ProductCategoryDO category = productCategoryMapper.selectById(id);
             if (category == null
-                    || Objects.equals(category.getParentId(), PARENT_ID_NULL)) {
+                || Objects.equals(category.getParentId(), PARENT_ID_NULL)) {
                 break;
             }
             // 继续递归父节点
