@@ -33,6 +33,7 @@ export interface GiveCouponTemplate {
 export interface Spu {
   id?: number
   name?: string // 商品名称
+  platformCategoryId?: number // 平台分类
   categoryId?: number // 商品分类
   keyword?: string // 关键字
   unit?: number | undefined // 单位
