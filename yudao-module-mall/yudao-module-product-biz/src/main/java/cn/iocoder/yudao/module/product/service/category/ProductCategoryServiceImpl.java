@@ -90,9 +90,10 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
         if (category == null) {
             throw exception(CATEGORY_PARENT_NOT_EXISTS);
         }
-        // 父分类不能是二级分类
-        if (!Objects.equals(category.getParentId(), PARENT_ID_NULL)) {
-            throw exception(CATEGORY_PARENT_NOT_FIRST_LEVEL);
+        // 只允许三级分类, 所以这里校验一下是否是第一或第二级分类
+        Long grandParentId = productCategoryMapper.getGrandParentId(category.getParentId());
+        if (grandParentId != null && !Objects.equals(grandParentId, PARENT_ID_NULL)) {
+            throw exception(CATEGORY_PARENT_SHOULD_NOT_THIRD_LEVEL);
         }
     }
 
@@ -123,6 +124,7 @@ public class ProductCategoryServiceImpl implements ProductCategoryService {
                 throw exception(CATEGORY_DISABLED, category.getName());
             }
             // 商品分类层级校验，必须使用第二级的商品分类
+            // fixme 这里需要重新确定
             if (getCategoryLevel(id) < CATEGORY_LEVEL) {
                 throw exception(SPU_SAVE_FAIL_CATEGORY_LEVEL_ERROR);
             }

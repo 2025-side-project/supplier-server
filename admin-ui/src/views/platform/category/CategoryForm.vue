@@ -60,7 +60,7 @@ const formData = ref({
   parentId: 0,
   name: undefined,
   sort: undefined,
-  status: undefined
+  status: 0
 })
 const formRules = reactive({
   parentId: [{ required: true, message: '父分类编号不能为空', trigger: 'blur' }],
@@ -124,7 +124,7 @@ const resetForm = () => {
     parentId: 0,
     name: undefined,
     sort: undefined,
-    status: undefined
+    status: 0
   }
   formRef.value?.resetFields()
 }
@@ -140,7 +140,6 @@ const getCategoryTree = async () => {
       node.leaf = true
     }
   })
-  console.log(treeDatas)
   productCategoryTree.value = [{ id: 0, name: '顶级商品分类', leaf: true }, ...treeDatas]
 }
 </script>

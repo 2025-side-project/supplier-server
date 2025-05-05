@@ -18,9 +18,6 @@ public class ProductCategoryRespVO {
     @Schema(description = "分类名称", requiredMode = Schema.RequiredMode.REQUIRED, example = "办公文具")
     private String name;
 
-    @Schema(description = "移动端分类图", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String picUrl;
-
     @Schema(description = "分类排序", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     private Integer sort;
 

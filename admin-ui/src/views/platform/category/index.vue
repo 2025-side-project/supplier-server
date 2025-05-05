@@ -117,6 +117,7 @@ import { CategoryApi, CategoryVO } from '@/api/platform/category'
 import CategoryForm from './CategoryForm.vue'
 import { DICT_TYPE } from '@/utils/dict'
 import { hasPermission } from '@/directives/permission/hasPermi'
+import { FormInstance } from 'element-plus'
 
 /** 平台分类 列表 */
 defineOptions({ name: 'PlatformCategory' })
@@ -125,7 +126,7 @@ const message = useMessage() // 消息弹窗
 const { t } = useI18n() // 国际化
 
 const loading = ref(true) // 列表的加载中
-const list = ref<CategoryVO[]>([]) // 列表的数据
+const list = shallowRef<CategoryVO[]>([]) // 列表的数据
 const queryParams = reactive({
   parentId: undefined,
   name: undefined,
@@ -133,7 +134,7 @@ const queryParams = reactive({
   status: undefined,
   createTime: []
 })
-const queryFormRef = ref() // 搜索的表单
+const queryFormRef = ref<FormInstance>() // 搜索的表单
 
 /** 查询列表 */
 const getList = async () => {
@@ -157,7 +158,7 @@ const handleQuery = () => {
 
 /** 重置按钮操作 */
 const resetQuery = () => {
-  queryFormRef.value.resetFields()
+  queryFormRef.value?.resetFields()
   handleQuery()
 }
 
