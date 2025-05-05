@@ -8,22 +8,16 @@
       v-loading="formLoading"
     >
       <el-form-item label="上级分类" prop="parentId">
-        <el-select v-model="formData.parentId" placeholder="请选择上级分类">
-          <el-option :key="0" label="顶级分类" :value="0" />
-          <el-option
-            v-for="item in categoryList"
-            :key="item.id"
-            :label="item.name"
-            :value="item.id"
-          />
-        </el-select>
+        <el-cascader
+          v-model="formData.parentId"
+          class="w-full"
+          :props="{ checkStrictly: true, ...defaultProps }"
+          :options="categoryList"
+          clearable
+        />
       </el-form-item>
       <el-form-item label="分类名称" prop="name">
         <el-input v-model="formData.name" placeholder="请输入分类名称" />
-      </el-form-item>
-      <el-form-item label="移动端分类图" prop="picUrl">
-        <UploadImg v-model="formData.picUrl" :limit="1" :is-show-tip="false" />
-        <div style="font-size: 10px" class="pl-10px">推荐 180x180 图片分辨率</div>
       </el-form-item>
       <el-form-item label="分类排序" prop="sort">
         <el-input-number v-model="formData.sort" controls-position="right" :min="0" />
@@ -50,6 +44,7 @@
 import { DICT_TYPE, getIntDictOptions } from '@/utils/dict'
 import { CommonStatusEnum } from '@/utils/constants'
 import * as ProductCategoryApi from '@/api/mall/product/category'
+import { defaultProps, eachTree, handleTree } from '@/utils/tree'
 
 defineOptions({ name: 'ProductCategory' })
 
@@ -63,13 +58,11 @@ const formType = ref('') // 表单的类型：create - 新增；update - 修改
 const formData = ref({
   id: undefined,
   name: '',
-  picUrl: '',
   status: CommonStatusEnum.ENABLE
 })
 const formRules = reactive({
   parentId: [{ required: true, message: '请选择上级分类', trigger: 'blur' }],
   name: [{ required: true, message: '分类名称不能为空', trigger: 'blur' }],
-  picUrl: [{ required: true, message: '分类图片不能为空', trigger: 'blur' }],
   sort: [{ required: true, message: '分类排序不能为空', trigger: 'blur' }],
   status: [{ required: true, message: '开启状态不能为空', trigger: 'blur' }]
 })
@@ -92,8 +85,21 @@ const open = async (type: string, id?: number) => {
     }
   }
   // 获得分类树
-  categoryList.value = await ProductCategoryApi.getCategoryList({ parentId: 0 })
+  await getCategoryTree()
 }
+
+const getCategoryTree = async () => {
+  const data = await ProductCategoryApi.getCategoryList({})
+  const treeDatas = handleTree(data, 'id', 'parentId')
+  eachTree(treeDatas, (node, parent) => {
+    node.level = (parent?.level ?? -1) + 1
+    if (node.level >= 1) {
+      node.leaf = true
+    }
+  })
+  categoryList.value = [{ id: 0, name: '顶级商品分类', leaf: true }, ...treeDatas]
+}
+
 defineExpose({ open }) // 提供 open 方法，用于打开弹窗
 
 /** 提交表单 */
@@ -127,7 +133,6 @@ const resetForm = () => {
   formData.value = {
     id: undefined,
     name: '',
-    picUrl: '',
     status: CommonStatusEnum.ENABLE
   }
   formRef.value?.resetFields()

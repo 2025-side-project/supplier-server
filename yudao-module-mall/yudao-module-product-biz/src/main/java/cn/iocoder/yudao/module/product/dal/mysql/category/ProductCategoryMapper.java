@@ -5,6 +5,7 @@ import cn.iocoder.yudao.framework.mybatis.core.query.LambdaQueryWrapperX;
 import cn.iocoder.yudao.module.product.controller.admin.category.vo.ProductCategoryListReqVO;
 import cn.iocoder.yudao.module.product.dal.dataobject.category.ProductCategoryDO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -40,4 +41,5 @@ public interface ProductCategoryMapper extends BaseMapperX<ProductCategoryDO> {
                 .eq(ProductCategoryDO::getStatus, status));
     }
 
+    Long getGrandParentId(@Param("id") Long id);
 }
