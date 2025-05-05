@@ -36,4 +36,6 @@ public interface CategoryMapper extends BaseMapperX<CategoryDO> {
     }
 
     Long getCategoryGrandParentId(@Param("id") Long id);
+
+    Long getCategoryGreatGrandParentId(@Param("id") Long id);
 }

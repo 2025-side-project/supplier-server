@@ -158,8 +158,8 @@ public class CategoryServiceImpl implements CategoryService {
         if (CommonStatusEnum.DISABLE.getStatus() == store.getStatus().intValue()) {
             throw exception(PLATFORM_CATEGORY_DISABLED, store.getName());
         }
-        Long grandParentId = categoryMapper.getCategoryGrandParentId(store.getId());
-        if (grandParentId != 0L) {
+        Long greatGrandParentId = categoryMapper.getCategoryGreatGrandParentId(store.getId());
+        if (greatGrandParentId != 0L) {
             throw exception(PLATFORM_CATEGORY_BINDING_ERROR);
         }
     }

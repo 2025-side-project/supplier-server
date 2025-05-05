@@ -37,6 +37,10 @@ public class ProductSpuRespVO {
     @ExcelProperty("商品详情")
     private String description;
 
+    @Schema(description = "平台分类编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
+    @ExcelProperty("平台分类编号")
+    private Long platformCategoryId;
+
     @Schema(description = "商品分类编号", requiredMode = Schema.RequiredMode.REQUIRED, example = "1")
     @ExcelProperty("商品分类编号")
     private Long categoryId;
